@@ -1,1 +1,42 @@
+pipeline {
+    agent any
 
+    environment {
+        IMAGE_NAME = 'fastapi-app'  // Define the image name
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Barath-NS/Docker-API.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${env.IMAGE_NAME}")  // Correct variable reference
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'jen-git') {
+                        docker.image("${env.IMAGE_NAME}").push('latest')  // Correct variable reference
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'FastAPI image built and pushed successfully!'
+        }
+        failure {
+            echo 'Something went wrong!'
+        }
+    }
+}
